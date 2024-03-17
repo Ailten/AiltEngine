@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Ailt Engine Demo</title>
+		<meta charset="utf-8"/>
+		<link rel="icon" type="image/png" href="./Logo.png"/>
+		
+		<!-- Ailt Engine -->
+		<script type="text/javascript" src="./Math/Math.js"></script>
+		<script type="text/javascript" src="./Vector/Vector.js"></script>
+		<script type="text/javascript" src="./Geometry/Rectangle.js"></script>
+		<script type="text/javascript" src="./Geometry/Circle.js"></script>
+		<script type="text/javascript" src="./Geometry/Line.js"></script>
+		<script type="text/javascript" src="./Loading/Loading.js"></script>
+		<script type="text/javascript" src="./Canvas/Canvas.js"></script>
+		<script type="text/javascript" src="./Mouse/Mouse.js"></script>
+		<script type="text/javascript" src="./Update/Update.js"></script>
+		<script type="text/javascript" src="./Entity/Entity.js"></script>
+		<script type="text/javascript" src="./Level/Level.js"></script>
+		<script type="text/javascript" src="./Audio/Audio.js"></script>
+		<script type="text/javascript" src="./Camera/Camera.js"></script>
+		<script type="text/javascript" src="./Input/Input.js"></script>
+		<script type="text/javascript" src="./Colide/Colide.js"></script>
+		<script type="text/javascript" src="./Enum/Enum.js"></script>
+		<script type="text/javascript" src="./Labyrinth/Labyrinth.js"></script>
+		
+		<!-- Level -->
+		<script type="text/javascript" src="./Level/LevelDemo/LevelDemo.js"></script>
+		
+		<!-- Entity -->
+		<script type="text/javascript" src="./Entity/BGDemo/BGDemo.js"></script>
+		<script type="text/javascript" src="./Entity/MDemo/MDemo.js"></script>
+		<script type="text/javascript" src="./Entity/TZDemo/TZDemo.js"></script>
+		
+		<!-- main demo -->
+		<script>
+		
+		window.addEventListener('load', function(){
+		
+		    Canvas.initCanvas(); //build the canvas.
+			Canvas.debug = true;
+			
+			Mouse.initMouse(); //add mouse event.
+			
+	        Input.init('ArrowUp'); //create the inputs.
+	        Input.init('ArrowLeft');
+	        Input.init('ArrowDown');
+	        Input.init('ArrowRight');
+	        Input.init('Escape');
+	        Input.init('Enter');
+			
+			Level.addLevel(LevelDemo, 'LevelDemo'); //add a level.
+			
+			Level.activeLevel('LevelDemo'); //active a level.
+			
+			Update.initUpdate(); //start the update event.
+			
+			//TODO : add zoom cam ?
+			//TODO : add rotate cam ?
+			//TODO : matrice (rotation, translation) ?
+			
+			//TODO : add circleSolid and circleTrigger to entity
+			//TODO : add colide systeme with circle (circle, circle) and (circle, rect)
+			
+			//TODO : deltaTime ?
+			//TODO : wait when frame is late ?
+			
+			//Warning, rotation can't rotate rect solid or trigger.
+		
+		});
+		
+		</script>
+		
+	</head>
+	<body style="margin: 0px; overflow: hidden;"></body>
+</html>
