@@ -8,7 +8,7 @@ const Camera = {
 	followedEntity: null, //the entity followed by camera.
 	speedLerp: 0.05, //speed lerp camera to followed entity.
 	
-	zoom: 1, //can zoom the sceen.
+	scale: Vector.init(1, 1), //can zoom the sceen.
 	rotate: 0, //can rotate the sceen.
 	
 	//action to follow the entity.
@@ -34,9 +34,7 @@ const Camera = {
 	
 	//focus instantly on the target follow.
 	followFocus: function() {
-		
 		this.pos = Vector.initFrom(this.followedEntity.pos);
-		
 	},
 
 };

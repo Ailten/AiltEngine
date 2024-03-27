@@ -8,64 +8,9 @@ const Vector = {
 	    return {x: x, y: y};
 	},
 	
-	//add many vector.
-	add: function(...vectors) {
-		let sum = Vector.init(0, 0);
-		vectors.forEach((v) => {
-		    sum.x += v.x;
-		    sum.y += v.y;
-		});
-		return sum;
-	},
-	
-	//lerp from vectorA to vectorB.
-	lerp: function(vectorA, vectorB, i) {
-		return Vector.init(
-		    Math.lerp(vectorA.x, vectorB.x, i),
-		    Math.lerp(vectorA.y, vectorB.y, i)
-		);
-	},
-	
-	//lerp quadratic from vectorA to vectorD.
-	quadraticLerp: function(vectorA, vectorB, vectorC, vectorD, i) {
-		let a_b = Vector.lerp(vectorA, vectorB, i);
-		let b_c = Vector.lerp(vectorB, vectorC, i);
-		let c_d = Vector.lerp(vectorC, vectorD, i);
-		
-		let ab_bc = Vector.lerp(a_b, b_c, i);
-		let bc_cd = Vector.lerp(b_c, c_d, i);
-		
-		return Vector.lerp(ab_bc, bc_cd, i);
-	},
-	
-	//lerp quadratic from vectorA to vectorD, (find two other point base on square idee).
-	quadraticLerp: function(vectorA, vectorD, i, invers=false) {
-		let vectorB = Vector.init(vectorA.x, vectorD.y);
-		let vectorC = Vector.init(vectorD.x, vectorA.y);
-		
-		if(invers)
-			return Vector.quadraticLerp(vectorA, vectorC, vectorB, vectorD, i);
-		return Vector.quadraticLerp(vectorA, vectorB, vectorC, vectorD, i);
-	},
-	
 	//make a new vector based to an existent vector (diferent instance).
 	initFrom: function(vectorA) {
 		return this.init(vectorA.x, vectorA.y);
-	},
-	
-	//return the distance between two vector.
-	dist: function(vectorA, vectorB) {
-		let x = Math.dif(vectorA.x, vectorB.x);
-		let y = Math.dif(vectorA.y, vectorB.y);
-		return Math.sqrt(x*x + y*y);
-	},
-		
-	//return true if both vector was equals.
-	equals: function(vectorA, vectorB) {
-		return (
-		    vectorA.x == vectorB.x &&
-		    vectorA.y == vectorB.y
-		);
 	},
 	
 	//round value of vector.
@@ -89,29 +34,91 @@ const Vector = {
 		    Math.ceil(vectorA.y)
 		);
 	},
+		
+	//return true if both vector was equals.
+	equals: function(vectorA, vectorB) {
+		return (
+		    vectorA.x == vectorB.x &&
+		    vectorA.y == vectorB.y
+		);
+	},
+	//return true if both axe of a vector is equal to number.
+	equalsNum: function(vectorA, n) {
+		return (
+		    vectorA.x == n &&
+		    vectorA.y == n
+		);
+	},
+	
+	//add a vector to another.
+	add: function(vectorA, vectorB) {
+		return Vector.init(
+			vectorA.x + vectorB.x,
+			vectorA.y + vectorB.y
+		);
+	},
+	//add a number to a vector. 
+	addNum: function(vectorA, num) {
+		return Vector.init(
+			vectorA.x + num,
+			vectorA.y + num
+		);
+	},
+	
+	//substract a vector to another.
+	substract: function(vectorA, vectorB) {
+		return Vector.init(
+			vectorA.x - vectorB.x,
+			vectorA.y - vectorB.y
+		);
+	},
+	//substract a number to a vector.
+	substractNum: function(vectorA, num) {
+		return Vector.init(
+			vectorA.x - num,
+			vectorA.y - num
+		);
+	},
+	
+	//multiply a vector to another.
+	multiply: function(vectorA, vectorB) {
+		return Vector.init(
+			vectorA.x * vectorB.x,
+			vectorA.y * vectorB.y
+		);
+	},
+	//multiply a number to a vector.
+	multiplyNum: function(vectorA, num) {
+		return Vector.init(
+			vectorA.x * num,
+			vectorA.y * num
+		);
+	},
+	
+	//length of a vector (dist from 0,0 to vector pos).
+	lengthOfAVector: function(vectorA) {
+		return Math.sqrt( (vectorA.x*vectorA.x) + (vectorA.y*vectorA.y) );
+	},
+	
+	//return the distance between two vector.
+	dist: function(vectorA, vectorB) {
+		return Vector.lengthOfAVector(Vector.substract(vectorB, vectorA));
+	},
 	
 	//return a new vector normalise.
 	normalize: function(vectorA) {
-		let diago = Math.sqrt((vectorA.x*vectorA.x)+(vectorA.y*vectorA.y));
+		let diago = Vector.lengthOfAVector(vectorA);
 		if(diago == 0)
 			return Vector.initFrom(vectorA);
 		return Vector.init(
 		    vectorA.x / diago,
 		    vectorA.y / diago,
 		);
-	},	
-	
-	//return a new vector, both value multiply by n.
-	multiply: function(vectorA, n) {
-		return Vector.init(
-		    vectorA.x * n,
-		    vectorA.y * n
-		);
 	},
 	
 	//apply a rotation in a vector.
 	rotateAVector: function(direction, degreeAngle){
-		let eulerAngle = Math.degreeToEuler(-degreeAngle);
+		let eulerAngle = Math.degreeToEuler(degreeAngle);
 		return Vector.init(
 			Math.cos(eulerAngle) * direction.x + (-Math.sin(eulerAngle)) * direction.y,
 			Math.sin(eulerAngle) * direction.x + Math.cos(eulerAngle) * direction.y
@@ -120,37 +127,55 @@ const Vector = {
 	
 	//return a new position before rotate around an other position.
 	rotateAround: function(posA, posB, degreeAngle) {
-		let out = Vector.init( //translate for center rotate.
-		    posA.x - posB.x,
-		    posA.y - posB.y,
-		);
+		let out = Vector.substract(posB, posA); //translate for center rotate.
 		out = Vector.rotateAVector(out, degreeAngle); //rotate.
-		out = Vector.init( //un-translate.
-		    out.x + posB.x,
-		    out.y + posB.y,
-		);
-		return out;
+		return Vector.add(posA, out); //un-translate.
 	},
 	
+	//cast a direction to an angle.
+	castVectorToAngle: function(direction){
+		let out = Math.atan2(direction.x, direction.y);
+		return Math.eulerToDegree(out);
+	},
+	//cast an angle to a direction.
+	castAngleToVector: function(angle){
+		return Vector.rotateAVector(Vector.init(0, 1), angle);
+	},
+	
+	//resize a vector for set length (like normalize, but by sending length).
+	resizeAVectorForSetLength: function(vector, length){
+		let vectorNormalized = Vector.normalize(vector);
+		return Vector.multiply(vectorNormalized, length);
+	},
 	//find end pos of a vector, by sending pos start, vector direction, and length of vector.
 	findEndOfVector: function(posStart, direction, length) {
-		let directionLength = Math.sqrt( //get length direction.
-			Math.pow(direction.x, 2) + 
-			Math.pow(direction.y, 2)
-		);
-		let multiplyDirection = length / directionLength;
-		return Vector.init(
-			posStart.x + direction.x * multiplyDirection,
-			posStart.y + direction.y * multiplyDirection
-		);
+		return Vector.add(posStart, Vector.resizeAVectorForSetLength(direction, length));
 	},
 	
-	//using for bounce of line in colide.
-	getAngleOfAVector: function(direction){
-		let out = Math.atan2(direction.x, direction.y);
-		out /= Math.PI;
-		out = (out + 1) /2;
-		return out * 360;
+	//lerp from vectorA to vectorB.
+	lerp: function(vectorA, vectorB, i) {
+		return Vector.init(
+		    Math.lerp(vectorA.x, vectorB.x, i),
+		    Math.lerp(vectorA.y, vectorB.y, i)
+		);
+	},
+	//lerp from vectorA to vectorC.
+	tripleLerp: function(vectorA, vectorB, vectorC, i) {
+		let a_b = Vector.lerp(vectorA, vectorB, i);
+		let b_c = Vector.lerp(vectorB, vectorC, i);
+		
+		return Vector.lerp(a_b, b_c, i);
+	},
+	//lerp quadratic from vectorA to vectorD.
+	quadraticLerp: function(vectorA, vectorB, vectorC, vectorD, i) {
+		let a_b = Vector.lerp(vectorA, vectorB, i);
+		let b_c = Vector.lerp(vectorB, vectorC, i);
+		let c_d = Vector.lerp(vectorC, vectorD, i);
+		
+		let ab_bc = Vector.lerp(a_b, b_c, i);
+		let bc_cd = Vector.lerp(b_c, c_d, i);
+		
+		return Vector.lerp(ab_bc, bc_cd, i);
 	},
 	
 }

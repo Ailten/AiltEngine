@@ -67,12 +67,12 @@ const Input = {
 	remapInput: function(inputRemap){
 		
 		/*/ --- example param (or string vertion).
-		inputRemap = [
-		    {key: 'ArrowUp', keyReMap: 'z'},
-		    {key: 'ArrowDown', keyReMap: 's'},
-		    {key: 'ArrowLeft', keyReMap: 'a'},
-		    {key: 'ArrowRight', keyReMap: 'd'},
-		];
+		Input.remapInput([
+			{key: 'ArrowUp', keyReMap: 'w'},
+			{key: 'ArrowLeft', keyReMap: 'a'},
+			{key: 'ArrowDown', keyReMap: 's'},
+			{key: 'ArrowRight', keyReMap: 'd'}
+		]);
 		//*/
 		
 		if(!inputRemap || inputRemap.length==0)
@@ -82,7 +82,7 @@ const Input = {
 		    inputRemap = JSON.parse(inputRemap);
 		
 		inputRemap.forEach((ir) => {
-			Input.inputs.find((i) => i.key == ir.key).keyReMap = ir.to;
+			Input.inputs.find((i) => i.key == ir.key).keyReMap = ir.keyReMap;
 		});
 		
 	}

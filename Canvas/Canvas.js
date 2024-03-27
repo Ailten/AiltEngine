@@ -1,7 +1,7 @@
 
 //manage the canvas.
 
-const Canvas = { //[ADD:V1.1]
+const Canvas = {
 
     canvasHTML: null, //dom canvas.
 	canvasContext: null, //context 2d canvas.
@@ -94,29 +94,25 @@ const Canvas = { //[ADD:V1.1]
 		}
 		
 		Entity.entities.filter((e) => ( //condition for draw.
-		    e.isActive &&  //only all isActive entity.
-			!e['noSprite'] //skip if no sprite.
+		    e.isActive  //only all isActive entity.
 		)).forEach((e) => {
-			Canvas.drawEntity(e);
+			
+			let posECanvas = Canvas.evalPosToDraw(e); //pos entity current cast into canvas pos.
+			
+			if(!e['noSprite'])
+				Canvas.drawEntity(e, posECanvas);
+			
+			if(e['addDraw'])
+				e.addDraw(e, posECanvas);
+			
+			if(Canvas.debug){
+				if(e['geometrySolid'])
+					Canvas.drawEntityGeometry(e, posECanvas, 'geometrySolid', 'blue');
+				if(e['geometryTrigger'])
+					Canvas.drawEntityGeometry(e, posECanvas, 'geometryTrigger', 'orange');
+			}
+			
 		});
-		
-		if(this.debug){
-			
-			Entity.entities.filter((e) => (
-		        e.isActive &&  //only all isActive entity.
-			    e['geometrySolid'] //skip if no sprite (but allow if mouse event).
-			)).forEach((e) => {
-			    Canvas.drawGeometry(e, 'geometrySolid');
-		    });
-			
-			Entity.entities.filter((e) => (
-		        e.isActive &&  //only all isActive entity.
-			    e['geometryTrigger'] //skip if no sprite (but allow if mouse event).
-			)).forEach((e) => {
-			    Canvas.drawGeometry(e, 'geometryTrigger');
-		    });
-			
-		}
 		
 		if(Camera.rotate != 0){ //undo rotate sceen.
 		    Canvas.canvasContext.translate(Canvas.size.x/2, Canvas.size.y/2); //translate to center sceen.
@@ -124,14 +120,13 @@ const Canvas = { //[ADD:V1.1]
 			Canvas.canvasContext.translate(-Canvas.size.x/2, -Canvas.size.y/2);
 		}
 		
-		if(this.debug){
-			
-			Canvas.drawGeometry(Mouse.entityMouse, 'geometrySolid');
-			
+		if(Canvas.debug){
+			let posECanvas = Canvas.evalPosToDraw(Mouse.entityMouse);
+			Canvas.drawEntityGeometry(Mouse.entityMouse, posECanvas, 'geometrySolid', 'blue');
 		}
 		
 		if(Level.transitionIsActive){ //draw transition level.
-			this.drawRect(
+			Canvas.drawRect(
 			    Vector.init(0, 0), 
 				Canvas.size, 
 				'rgb(0,0,0, '+(Level.transitionOpacity)+')', 
@@ -142,9 +137,9 @@ const Canvas = { //[ADD:V1.1]
 	},
 	
 	//draw a rectangle.
-    drawRect: function(pos, size, color='#000', full=false){
+    drawRect: function(pos, size, color='#000', fill=false){
     	
-		if(full){
+		if(fill){
 			
 		    this.canvasContext.fillStyle = color;
 		    this.canvasContext.fillRect(
@@ -164,9 +159,9 @@ const Canvas = { //[ADD:V1.1]
     },
 	
 	//draw a circle.
-	drawCircle: function(pos, rayon, color='#000', full=false){
+	drawCircle: function(pos, rayon, color='#000', fill=false){
 		
-		if(full){
+		if(fill){
 			
 		    this.canvasContext.fillStyle = color;
 		    this.canvasContext.arc(
@@ -190,21 +185,51 @@ const Canvas = { //[ADD:V1.1]
 	},
 	
 	//draw a line.
-	drawLine: function(posA, posB, color='#000') {
+	drawLine: function(posA, posB, color='#000', thicness=1) {
 		
 		this.canvasContext.beginPath();
+		this.canvasContext.lineWidth = thicness;
 		this.canvasContext.strokeStyle = color;
 		this.canvasContext.moveTo(posA.x, posA.y);
 		this.canvasContext.lineTo(posB.x, posB.y);
 		this.canvasContext.stroke();
 		
 	},
+	//draw an array of geometry lines.
+	drawArrayLines: function(lines, color='#000', posCanvas=null){
+		
+		posCanvas ||= Vector.multiplyNum(Canvas.size, 0.5);
+		
+		this.canvasContext.beginPath();
+		this.canvasContext.lineWidth = 1;
+		this.canvasContext.strokeStyle = color;
+		
+		lines.forEach(l => {
+			let posA = Vector.add(posCanvas, l.posStart);
+			let posB = Vector.add(posCanvas, l.posEnd);
+			
+			this.canvasContext.moveTo(posA.x, posA.y);
+			this.canvasContext.lineTo(posB.x, posB.y);
+		});
+		
+		this.canvasContext.stroke();
+	},
 	
 	//draw a text.
-	drawTxt: function(txt, pos, color='black', typoSize=20, typo='Trebuchet MS'){
+	drawTxt: function(txt, pos, color='black', typoSize=20, typo='Trebuchet MS', alignX=.5, alignY=.5){
 		
 		this.canvasContext.font = typoSize+'px '+typo;
 		this.canvasContext.fillStyle = color;
+		Canvas.canvasContext.textAlign = (
+			(alignX == 0)? 'left':
+			(alignX == 1)? 'right':
+			'center'
+		);
+		Canvas.canvasContext.textBaseline = (
+			(alignY == 0)? 'bottom':
+			(alignY == 1)? 'top':
+			'middle'
+		);
         this.canvasContext.fillText(
 		    txt, 
 			pos.x, pos.y
@@ -224,7 +249,7 @@ const Canvas = { //[ADD:V1.1]
 	},
 	
 	//draw sprite of an entity.
-	drawEntity: function(entity){
+	drawEntity: function(entity, posECanvas){
 		
 		let img = null;
 		
@@ -253,50 +278,45 @@ const Canvas = { //[ADD:V1.1]
 			
 		}
 		
-		let posToDraw = Canvas.evalPosToDraw(entity);
+		let posToDraw = Vector.initFrom(posECanvas);
+		let encrageForCanvas = Vector.init(entity.encrage.x, 1-entity.encrage.y);
+		let camZoom = (entity['isHud']? Vector.init(1, 1): Camera.scale);
 		
-		posToDraw.x -= entity.size.x *(entity['isHud']?1:Camera.zoom) *entity.encrage.x; //start to draw att encrage replacement (in canvas value).
-		posToDraw.y -= entity.size.y *(entity['isHud']?1:Camera.zoom) *(1-entity.encrage.y);
+		posToDraw.x -= (entity.size.x*entity.scale.x) *camZoom.x *encrageForCanvas.x; //start to draw att encrage replacement (in canvas value).
+		posToDraw.y -= (entity.size.y*entity.scale.y) *camZoom.y *encrageForCanvas.y;
 		
-		if(entity['rotate']){ //draw img with rotation.
+		if(entity.rotate != 0){ //draw img with rotation.
 			
-			if(entity['rotateEncrage']){
-				posToDraw.x += entity.size.x * entity.encrage.x;
-				posToDraw.y += entity.size.y * (1-entity.encrage.y);
-			}else{
-				posToDraw.x += entity.size.x * .5;
-				posToDraw.y += entity.size.y * .5;
-			}
+			posToDraw.x += (entity.size.x*entity.scale.x) *encrageForCanvas.x;
+			posToDraw.y += (entity.size.y*entity.scale.y) *encrageForCanvas.y;
 		
 		    Canvas.canvasContext.translate(posToDraw.x, posToDraw.y); //translate + rotate.
 			Canvas.canvasContext.rotate(Math.degreeToEuler(entity.rotate));
 			
-			if(entity['rotateEncrage']){
-			    Canvas.drawImg( //draw.
-			        img, 
-			    	Vector.init(-entity.size.x*(entity.encrage.x), -entity.size.y*(1-entity.encrage.y)), //TODO: try hard code (0;0).
-			    	Vector.multiply(entity.size, (entity['isHud']?1:Camera.zoom))
-			    );
-			}else{
-			    Canvas.drawImg( //draw.
-			        img, 
-			    	Vector.init(-entity.size.x/2, -entity.size.y/2),  //TODO: try hard code (0;0).
-			    	Vector.multiply(entity.size, (entity['isHud']?1:Camera.zoom))
-			    );
-			}
+			Canvas.drawImg( //draw.
+			    img, 
+				Vector.init(
+					-(entity.size.x*entity.scale.x)*(entity.encrage.x), 
+					-(entity.size.y*entity.scale.y)*(1-entity.encrage.y)
+				),
+				Vector.init(
+					(entity.size.x*entity.scale.x) *camZoom.x,
+					(entity.size.x*entity.scale.y) *camZoom.y
+				)
+			);
 			
 			Canvas.canvasContext.rotate(-Math.degreeToEuler(entity.rotate)); //cancel translate + rotate.
 		    Canvas.canvasContext.translate(-posToDraw.x, -posToDraw.y);
 			
 		}else{ //draw without rotate.
-		
-			posToDraw.x = Math.floor(posToDraw.x); //round pos for no spacing between two entity.
-			posToDraw.y = Math.floor(posToDraw.y);
 			
 		    Canvas.drawImg(
 		        img, //obj image loaded.
-		    	posToDraw, //position to draw in canvas.
-		    	Vector.multiply(entity.size, (entity['isHud']?1:Camera.zoom)) //size of sprite draw.
+		    	Vector.floor(posToDraw), //position to draw in canvas.
+				Vector.init( //size of sprite draw.
+					(entity.size.x*entity.scale.x) *camZoom.x,
+					(entity.size.x*entity.scale.y) *camZoom.y
+				)
 		    );
 			
 		}
@@ -304,41 +324,33 @@ const Canvas = { //[ADD:V1.1]
 	},
 	
 	//draw rectangle solid of an entity.
-	drawGeometry: function(entity, geometry){
+	drawEntityGeometry: function(entity, posECanvas, geometry='geometrySolid', color='#000'){
 		
-		let color = (geometry == 'geometrySolid'? 'blue': 'orange');
-		
-		let posToDraw = Canvas.evalPosToDraw(entity); //pos of object to draw.
-		
-		for(let ei=0; ei<entity[geometry].length; ei++){
+		entity[geometry].forEach(geo => {
 			
-			if(entity[geometry][ei].type == 'Rectangle'){
-			    Canvas.drawRect(
-			        Vector.init(
-			    	    posToDraw.x + entity[geometry][ei].posUpLeft.x *Camera.zoom, 
-			    		posToDraw.y - entity[geometry][ei].posUpLeft.y *Camera.zoom
-			    	), 
-			    	Vector.multiply(Vector.init(
-			    	    entity[geometry][ei].posDownRight.x - entity[geometry][ei].posUpLeft.x,
-			    		entity[geometry][ei].posUpLeft.y - entity[geometry][ei].posDownRight.y
-			    	), Camera.zoom), 
-			    	color, 
-			    	false
-			    );
-			}
-			else if(entity[geometry][ei].type == 'Circle'){
-				Canvas.drawCircle(
-				    Vector.init(
-					    posToDraw.x + entity[geometry][ei].pos.x *Camera.zoom,
-					    posToDraw.y - entity[geometry][ei].pos.y *Camera.zoom
-					),
-					entity[geometry][ei].rayon *Camera.zoom,
-			    	color, 
-					false
-				);
+			let arrayLines = Geometry.getArrayLinesFromGeometry(
+				geo, 
+				posECanvas, 
+				entity.rotate, 
+				entity.scale
+			);
+			
+			for(let i=0; i<arrayLines.length; i++){ //reverce y for canvas.
+				arrayLines[i].posStart = Vector.substract(arrayLines[i].posStart, posECanvas);
+				arrayLines[i].posEnd = Vector.substract(arrayLines[i].posEnd, posECanvas);
+				arrayLines[i].posStart.y *= -1;
+				arrayLines[i].posEnd.y *= -1;
+				arrayLines[i].posStart = Vector.add(arrayLines[i].posStart, posECanvas);
+				arrayLines[i].posEnd = Vector.add(arrayLines[i].posEnd, posECanvas);
 			}
 			
-		}
+			Canvas.drawArrayLines(
+				arrayLines, 
+				color,
+				Vector.init(0, 0)
+			);
+			
+		});
 		
 	},
 	
@@ -351,8 +363,8 @@ const Canvas = { //[ADD:V1.1]
 		posToDraw.y -= Camera.pos.y;
 		
 		if(!entity['isHud']){
-			posToDraw.x *= Camera.zoom; //zoom sceen (if came has zoom value).
-			posToDraw.y *= Camera.zoom;
+			posToDraw.x *= Camera.scale.x; //zoom sceen (if came has zoom value).
+			posToDraw.y *= Camera.scale.y;
 		}
 		
 		posToDraw.x += Canvas.size.x /2; //pos cam is focusing center of screen.

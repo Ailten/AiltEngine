@@ -11,13 +11,20 @@ const Mouse = {
 		
 		this.entityMouse = {
 			pos: Vector.init(0, 0), //pos click.
+			size: Vector.init(0, 0),
+			encrage: Vector.init(0.5, 0.5),
+			rotate: 0,
+			scale: Vector.init(1, 1),
+			zIndex: 1,
+			
 			geometrySolid: [ //zone colide click.
 			    Circle.init(
 				    Vector.init(0, 0),
-					1
+					4
 				)
 			],
 			noSprite: true,
+			isMouse: true,
 		};
 		
 		Canvas.canvasHTML.addEventListener('click', function(evnt){
@@ -25,6 +32,10 @@ const Mouse = {
 		});
 		Canvas.canvasHTML.addEventListener('mousemove', function(evnt){
 			Mouse.mouseEvent(evnt, 'over');
+		});
+		
+		Canvas.canvasHTML.addEventListener('wheel', function(evnt){
+			Mouse.wheelScrol(Math.round(evnt.deltaY/100));
 		});
 		
 	},
@@ -40,13 +51,13 @@ const Mouse = {
 		this.entityMouse.pos.x = Math.floor(this.entityMouse.pos.x - Canvas.size.x/2); //normalize on center canvas.
 		this.entityMouse.pos.y = Math.floor(this.entityMouse.pos.y - Canvas.size.y/2);
 		
-		this.entityMouse.pos.x *= 1/Camera.zoom; //apply camera zoom.
-		this.entityMouse.pos.y *= 1/Camera.zoom;
+		this.entityMouse.pos.x *= 1/Camera.scale.x; //apply camera zoom.
+		this.entityMouse.pos.y *= 1/Camera.scale.y;
 		
 		this.entityMouse.pos.x += Camera.pos.x; //place encrage from camera.
 		this.entityMouse.pos.y += Camera.pos.y;
 		
-		let entityColide = Colide.tryTrigger(this.entityMouse); //get entity is colide to mouse.
+		let entityColide = Colide.executeEventTriggerFind(this.entityMouse, 'triggerByMouse'); //get entity is colide to mouse.
 		
 		if(typeEvent == 'click' && entityColide != null && entityColide['eventClick']){ //do click.
 		    entityColide.eventClick(entityColide, evnt);

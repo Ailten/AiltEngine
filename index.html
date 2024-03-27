@@ -11,6 +11,8 @@
 		<script type="text/javascript" src="./Geometry/Rectangle.js"></script>
 		<script type="text/javascript" src="./Geometry/Circle.js"></script>
 		<script type="text/javascript" src="./Geometry/Line.js"></script>
+		<script type="text/javascript" src="./Geometry/Triangle.js"></script>
+		<script type="text/javascript" src="./Geometry/Geometry.js"></script>
 		<script type="text/javascript" src="./Loading/Loading.js"></script>
 		<script type="text/javascript" src="./Canvas/Canvas.js"></script>
 		<script type="text/javascript" src="./Mouse/Mouse.js"></script>
@@ -21,16 +23,13 @@
 		<script type="text/javascript" src="./Camera/Camera.js"></script>
 		<script type="text/javascript" src="./Input/Input.js"></script>
 		<script type="text/javascript" src="./Colide/Colide.js"></script>
-		<script type="text/javascript" src="./Enum/Enum.js"></script>
 		<script type="text/javascript" src="./Labyrinth/Labyrinth.js"></script>
 		
 		<!-- Level -->
 		<script type="text/javascript" src="./Level/LevelDemo/LevelDemo.js"></script>
 		
 		<!-- Entity -->
-		<script type="text/javascript" src="./Entity/BGDemo/BGDemo.js"></script>
-		<script type="text/javascript" src="./Entity/MDemo/MDemo.js"></script>
-		<script type="text/javascript" src="./Entity/TZDemo/TZDemo.js"></script>
+		<script type="text/javascript" src="./Entity/PlayerDemo/PlayerDemo.js"></script>
 		
 		<!-- main demo -->
 		<script>
@@ -54,18 +53,6 @@
 			Level.activeLevel('LevelDemo'); //active a level.
 			
 			Update.initUpdate(); //start the update event.
-			
-			//TODO : add zoom cam ?
-			//TODO : add rotate cam ?
-			//TODO : matrice (rotation, translation) ?
-			
-			//TODO : add circleSolid and circleTrigger to entity
-			//TODO : add colide systeme with circle (circle, circle) and (circle, rect)
-			
-			//TODO : deltaTime ?
-			//TODO : wait when frame is late ?
-			
-			//Warning, rotation can't rotate rect solid or trigger.
 		
 		});
 		

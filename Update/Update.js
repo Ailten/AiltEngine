@@ -22,7 +22,8 @@ const Update = {
 			    return;
 			}
 			
-			Level.updateAllLevels(); //do update of all levels.
+			if(!Level.transitionIsActive)
+				Level.updateAllLevels(); //do update of all levels.
 			
 			Level.updateLevel(); //do update of level manager (transition level).
 			

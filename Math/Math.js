@@ -48,18 +48,18 @@ Math.milisecToTimeString = function(milisec) {
 	
 };
 
-//cast a euler angle to degree angle.
-Math.degreeToEuler = function(euler) {
-	return (euler * Math.PI/180);
-};
 //cast a degree angle to euler angle.
-Math.eulerToDegree = function(degree) {
-	return (degree / Math.PI*180);
+Math.degreeToEuler = function(degree) {
+	return ((degree /180) *Math.PI);
+};
+//cast a euler angle to degree angle.
+Math.eulerToDegree = function(euler) {
+	return ((euler /Math.PI) *180);
 };
 
 //take two position, and return an angle of rotation to apply at first position, for make it look at the seconde position.
 Math.lookAt = function(posA, posB) {
-	return Math.degreeToEuler(Math.atan2(posB.x-posA.x, posB.y-posA.y));
+	return Math.eulerToDegree(Math.atan2(posB.x-posA.x, posB.y-posA.y));
 };
 
 //return a random number integer (both include).
